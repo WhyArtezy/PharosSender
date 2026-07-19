@@ -1,32 +1,32 @@
 # Pharos Mainnet Sender
 
-Script Python untuk mengirim **seluruh saldo (sweep)** dari banyak wallet ke satu alamat tujuan di jaringan Pharos, secara paralel (multi-thread) dengan mekanisme retry otomatis saat kena rate limit (HTTP 429).
+A Python script that **sweeps the entire balance** from multiple wallets to a single destination address on the Pharos network, in parallel (multi-threaded) with automatic retry on rate limits (HTTP 429).
 
-## ✨ Fitur
+## ✨ Features
 
-- Mendukung wallet dalam bentuk **private key** maupun **seed phrase** (12/15/18/21/24 kata)
-- Bisa memuat wallet dari dua file sekaligus (`wallet.txt` & `walletv2.txt`, keduanya opsional — script tetap jalan meski hanya salah satu yang ada)
-- Preview saldo semua akun sebelum eksekusi (real-time dari RPC)
-- Eksekusi paralel per-batch menggunakan `ThreadPoolExecutor`
-- Retry otomatis dengan backoff saat RPC mengembalikan error rate limit
-- Jeda acak antar batch untuk menghindari spam RPC
-- Ringkasan hasil + log lengkap tersimpan ke `results.json`
-- Output terminal berwarna (colorama)
+- Supports wallets as **private keys** or **seed phrases** (12/15/18/21/24 words)
+- Can load wallets from two files at once (`wallet.txt` & `walletv2.txt`, both optional — the script still runs even if only one exists)
+- Real-time balance preview for all accounts before execution
+- Parallel batch execution using `ThreadPoolExecutor`
+- Automatic retry with backoff when the RPC returns a rate-limit error
+- Random delay between batches to avoid spamming the RPC
+- Summary results + full log saved to `results.json`
+- Colored terminal output (colorama)
 
-## 📋 Persyaratan
+## 📋 Requirements
 
 - Python 3.9+
-- Koneksi ke RPC jaringan Pharos (atau RPC kompatibel EVM lainnya)
+- Access to a Pharos network RPC (or any compatible EVM RPC)
 
-## 🚀 Instalasi
+## 🚀 Installation
 
-1. **Clone repository**
+1. **Clone the repository**
    ```bash
    git clone https://github.com/username/pharos-mainnet-sender.git
    cd pharos-mainnet-sender
    ```
 
-2. **(Opsional) Buat virtual environment**
+2. **(Optional) Create a virtual environment**
    ```bash
    python -m venv venv
    source venv/bin/activate      # Linux/Mac
@@ -38,19 +38,19 @@ Script Python untuk mengirim **seluruh saldo (sweep)** dari banyak wallet ke sat
    pip install web3 eth-account python-dotenv colorama
    ```
 
-   Atau buat `requirements.txt` berisi:
+   Or create a `requirements.txt` with:
    ```
    web3
    eth-account
    python-dotenv
    colorama
    ```
-   lalu jalankan `pip install -r requirements.txt`
+   then run `pip install -r requirements.txt`
 
-4. **Siapkan file konfigurasi `.env`**
+4. **Set up the `.env` configuration file**
    ```env
    RPC_URL=https://rpc.pharos.xyz
-   TO_ADDRESS=0xAlamatTujuanAnda
+   TO_ADDRESS=0xYourDestinationAddress
    DELAY_MIN=1
    DELAY_MAX=3
    WALLET_FILE=wallet.txt
@@ -60,42 +60,42 @@ Script Python untuk mengirim **seluruh saldo (sweep)** dari banyak wallet ke sat
    RETRY_DELAY=5
    ```
 
-5. **Siapkan file wallet**
+5. **Prepare the wallet file(s)**
 
-   - `wallet.txt` — wajib ada.
-   - `walletv2.txt` — **opsional**. Kalau file ini tidak ada, script tetap jalan dan hanya akan memuat wallet dari `wallet.txt` (akan muncul peringatan "tidak ditemukan" untuk `walletv2.txt`, ini normal).
+   - `wallet.txt` — required.
+   - `walletv2.txt` — **optional**. If this file doesn't exist, the script still runs and only loads wallets from `wallet.txt` (a "not found" warning for `walletv2.txt` will appear, which is normal).
 
-   Satu baris = satu wallet. Bisa berupa private key atau seed phrase:
+   One wallet per line, either a private key or a seed phrase:
    ```
    0xabc123...def456
    word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12
-   # baris diawali # akan diabaikan
+   # lines starting with # are ignored
    ```
 
-6. **Jalankan script**
+6. **Run the script**
    ```bash
    python main.py
    ```
 
-## 🔁 Alur Kerja (Flow)
+## 🔁 Workflow
 
-1. **Banner & konfigurasi** — script menampilkan ringkasan konfigurasi (RPC, alamat tujuan, jumlah thread, retry, delay).
-2. **Load wallet** — membaca `wallet.txt` dan `walletv2.txt`, memvalidasi tiap baris (private key hex 64 karakter atau seed phrase), lalu men-derive address-nya.
-3. **Koneksi Web3** — menghubungkan ke RPC dan memverifikasi koneksi + chain ID.
-4. **Preview saldo** — mengambil saldo tiap akun secara real-time dan menampilkan tabel (address, sumber, saldo, status siap/kosong), termasuk total saldo gabungan.
-5. **Konfirmasi manual** — pengguna harus mengetik `YA` untuk melanjutkan proses pengiriman (safety check).
-6. **Eksekusi paralel per-batch**:
-   - Semua akun dibagi ke dalam batch sesuai `MAX_WORKERS`.
-   - Tiap batch diproses bersamaan lewat `ThreadPoolExecutor`.
-   - Untuk tiap akun: hitung gas price & gas cost, kirim seluruh saldo (`saldo - biaya gas`) ke `TO_ADDRESS`, lalu tunggu receipt transaksi.
-   - Jika RPC mengembalikan error rate limit (429), otomatis retry dengan jeda meningkat.
-   - Ada jeda acak (`DELAY_MIN`–`DELAY_MAX` detik) antar batch.
-7. **Ringkasan akhir** — menampilkan jumlah transaksi sukses/gagal/dilewati/error beserta total dana yang berhasil terkirim, dan menyimpan detail lengkap ke `results.json`.
+1. **Banner & configuration** — the script prints a summary of the configuration (RPC, destination address, thread count, retry, delay).
+2. **Load wallets** — reads `wallet.txt` and `walletv2.txt`, validates each line (64-character hex private key or seed phrase), and derives the corresponding address.
+3. **Web3 connection** — connects to the RPC and verifies the connection + chain ID.
+4. **Balance preview** — fetches each account's balance in real time and displays a table (address, source, balance, ready/empty status), including the combined total balance.
+5. **Manual confirmation** — the user must type `YES` to proceed with sending (a safety check).
+6. **Parallel batch execution**:
+   - All accounts are split into batches based on `MAX_WORKERS`.
+   - Each batch is processed concurrently via `ThreadPoolExecutor`.
+   - For each account: calculate gas price & gas cost, send the entire balance (`balance - gas cost`) to `TO_ADDRESS`, then wait for the transaction receipt.
+   - If the RPC returns a rate-limit error (429), it automatically retries with an increasing delay.
+   - There's a random delay (`DELAY_MIN`–`DELAY_MAX` seconds) between batches.
+7. **Final summary** — shows the number of successful/failed/skipped/error transactions along with the total amount sent, and saves the full details to `results.json`.
 
-## ⚠️ Peringatan Keamanan
+## ⚠️ Security Warning
 
-- **Jangan pernah** commit file `.env`, `wallet.txt`, atau `walletv2.txt` ke repository — file-file ini berisi kunci privat/seed phrase yang bisa digunakan untuk mengambil alih dana.
-- Tambahkan ke `.gitignore`:
+- **Never** commit the `.env`, `wallet.txt`, or `walletv2.txt` files to the repository — these files contain private keys/seed phrases that can be used to take over your funds.
+- Add these to `.gitignore`:
   ```
   .env
   wallet.txt
@@ -103,18 +103,18 @@ Script Python untuk mengirim **seluruh saldo (sweep)** dari banyak wallet ke sat
   results.json
   venv/
   ```
-- Gunakan script ini hanya pada wallet milik sendiri. Pastikan `TO_ADDRESS` sudah benar sebelum konfirmasi, karena transaksi di blockchain bersifat final dan tidak bisa dibatalkan.
+- Only use this script with wallets you own. Double-check that `TO_ADDRESS` is correct before confirming, since blockchain transactions are final and cannot be reversed.
 
-## 💰 Donasi
+## 💰 Donate
 
-Kalau project ini bermanfaat, dukungan Anda sangat dihargai:
+If this project is useful to you, your support is greatly appreciated:
 
 | Chain | Address |
 |---|---|
-| EVM (ETH/BNB/Polygon/dll) | `0x332ad1f9f1323acf0b10540ad485ad4ff87238b2` |
+| EVM (ETH/BNB/Polygon/etc.) | `0x332ad1f9f1323acf0b10540ad485ad4ff87238b2` |
 | Solana | `J991ULgATYPheujXjc9bomraZ6Gn5AZSYedAkqu3gTuL` |
 | Tron | `TDYEhNUeBBnp5CdgJbNhgBS5tac6YRNC3P` |
 
-## 📄 Lisensi
+## 📄 License
 
-Project ini menggunakan lisensi [MIT](LICENSE).
+This project is licensed under [MIT](LICENSE).
