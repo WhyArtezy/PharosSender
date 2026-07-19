@@ -1,0 +1,22 @@
+# Environment & secrets
+.env
+
+# Wallet files (private key / seed phrase)
+wallet.txt
+walletv2.txt
+
+# Hasil eksekusi
+results.json
+
+# Virtual environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
