@@ -105,6 +105,16 @@ Script Python untuk mengirim **seluruh saldo (sweep)** dari banyak wallet ke sat
   ```
 - Gunakan script ini hanya pada wallet milik sendiri. Pastikan `TO_ADDRESS` sudah benar sebelum konfirmasi, karena transaksi di blockchain bersifat final dan tidak bisa dibatalkan.
 
+## 💰 Donasi
+
+Kalau project ini bermanfaat, dukungan Anda sangat dihargai:
+
+| Chain | Address |
+|---|---|
+| EVM (ETH/BNB/Polygon/dll) | `0x332ad1f9f1323acf0b10540ad485ad4ff87238b2` |
+| Solana | `J991ULgATYPheujXjc9bomraZ6Gn5AZSYedAkqu3gTuL` |
+| Tron | `TDYEhNUeBBnp5CdgJbNhgBS5tac6YRNC3P` |
+
 ## 📄 Lisensi
 
 Project ini menggunakan lisensi [MIT](LICENSE).
